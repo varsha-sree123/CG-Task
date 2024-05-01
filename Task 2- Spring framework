@@ -1,0 +1,81 @@
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@SpringBootApplication
+@RestController
+@RequestMapping("/books")
+public class LibrarySystemApplication {
+
+    private Map<Integer, Book> books = new HashMap<>();
+    private int nextId = 1;
+
+    // Create a new book
+    @PostMapping
+    public ResponseEntity<Book> createBook(@Valid @RequestBody Book book) {
+        book.setId(nextId++);
+        books.put(book.getId(), book);
+        return new ResponseEntity<>(book, HttpStatus.CREATED);
+    }
+
+    // Retrieve all books
+    @GetMapping
+    public ResponseEntity<List<Book>> getAllBooks() {
+        return new ResponseEntity<>(new ArrayList<>(books.values()), HttpStatus.OK);
+    }
+
+    // Retrieve a specific book by its ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Book> getBookById(@PathVariable int id) {
+        Book book = books.get(id);
+        if (book != null) {
+            return new ResponseEntity<>(book, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // Update an existing book
+    @PutMapping("/{id}")
+    public ResponseEntity<Book> updateBook(@PathVariable int id, @Valid @RequestBody Book book) {
+        Book existingBook = books.get(id);
+        if (existingBook != null) {
+            book.setId(id);
+            books.put(id, book);
+            return new ResponseEntity<>(book, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // Delete a book by its ID
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBook(@PathVariable int id) {
+        if (books.containsKey(id)) {
+            books.remove(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(LibrarySystemApplication.class, args);
+    }
+}
+
+class Book {
+    private int id;
+    private String title;
+    private String author;
+    private String isbn;
+    private String genre;
+    private int publicationYear;
+}
